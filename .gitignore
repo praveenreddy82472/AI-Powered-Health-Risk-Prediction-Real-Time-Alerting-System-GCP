@@ -1,0 +1,40 @@
+# Python cache and virtual environment
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+venv/
+.venv/
+
+# IDE / editor settings
+.vscode/
+.idea/
+
+# OS-generated files
+.DS_Store
+Thumbs.db
+
+# Logs and temp files
+*.log
+*.tmp
+*.swp
+*.bak
+
+# Credentials and config
+.env
+*.key
+*.json
+*.yaml
+*.yml
+
+# Project-specific ignores
+--project=*
+--region=*
+setup.txt
+composer_setup.txt
+email_recived_test.py
+
+# Build output
+build/
+dist/
+*.egg-info/

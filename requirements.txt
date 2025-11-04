@@ -1,0 +1,6 @@
+apache-beam[gcp]
+google-cloud-pubsub
+google-cloud-storage
+google-cloud-bigquery
+protobuf
+sendgrid
