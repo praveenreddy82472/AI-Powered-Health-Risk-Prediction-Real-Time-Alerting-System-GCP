@@ -49,7 +49,7 @@ These are connected to **Looker Studio**, giving stakeholders a clear view of pa
 ---
 
 ## 🏗️ Cloud Architecture Diagram
-![Architecture Diagram](Archi%20(2).png)
+![Architecture Diagram](https://github.com/praveenreddy82472/AI-Powered-Health-Risk-Prediction-Real-Time-Alerting-System-GCP-/blob/main/Images/final_archi.png)
 
 ---
 
