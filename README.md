@@ -17,6 +17,79 @@ This project demonstrates how an enterprise can build **low-latency, scalable, a
 
 ---
 
+---
+
+### 🧩 Design Evolution & Learnings
+
+While building this system, I learned that **real-time and batch orchestration require different execution models** on GCP.  
+Initially, I wanted to run everything — ingestion, transformation, validation, and alerts — in a single unified pipeline.  
+But during testing, I discovered that this approach was not scalable or maintainable in a real-time production setup.
+
+---
+
+#### ⚠️ Challenge 1: One Job Can’t Handle It All
+At first, I tried using a **single Dataflow pipeline** to perform:
+- Ingestion from Pub/Sub  
+- Validation and transformation  
+- Threshold-based alerting  
+
+However, combining all of these caused operational issues.  
+The job became complex, error-prone, and **not compatible with continuous production streaming** because each operation had its own frequency and latency needs.
+
+---
+
+#### ⚙️ Challenge 2: Latency & Bottlenecks
+When all processes were handled in one Dataflow job, it created:
+- **High data lag** and inconsistent watermarking  
+- **System bottlenecks**, as transformations waited on alert logic  
+- **Scalability issues**, since streaming jobs need to run continuously while transformations are periodic  
+
+From this, I learned the key architectural principle:  
+> “In real-time pipelines, alerting and transformations should be handled by separate, specialized jobs.”
+
+---
+
+#### 🏗️ Solution: Medallion Architecture (Bronze → Silver → Gold)
+To address these challenges, I implemented a **Medallion Data Architecture** for BigQuery:
+- 🥉 **Bronze (Raw):** Native data streamed from Pub/Sub into BigQuery using **Dataflow Job 1**  
+- 🥈 **Silver:** Cleaned, validated, and deduplicated data using **scheduled SQL queries** in **Cloud Composer**  
+- 🥇 **Gold:** Fully curated, analytics-ready data optimized for **ML training** and **Looker dashboards**
+
+This separation provided **data lineage, maintainability, and reliability**, allowing each process to run independently.
+
+---
+
+#### ⚡ Challenge 3: Orchestration Compatibility
+Initially, I thought to orchestrate all pipelines (Pub/Sub, Dataflow, BigQuery) within **Cloud Composer**.  
+But I soon realized that:
+- **Pub/Sub** and **Dataflow** are **streaming and continuously running** services  
+- **Cloud Composer (Airflow)** is designed for **scheduled, event-based orchestration**  
+
+This means **continuous pipelines** don’t fit into Composer’s DAG execution cycle.
+
+So instead:
+- I used **Flex Templates** to deploy Dataflow jobs that run continuously outside of Composer.  
+- Composer now focuses on **batch orchestration** — scheduling SQL scripts, updating the Silver and Gold tables, and triggering **ML training and prediction workflows**.
+
+---
+
+#### 🧠 Final Insight: Balancing Real-Time and Batch
+The final system balances **real-time streaming** and **scheduled batch orchestration**:
+
+| Layer | Technology | Purpose |
+|--------|-------------|----------|
+| **Streaming Layer** | Pub/Sub → Dataflow | Real-time ingestion & alert pipeline |
+| **Storage Layer** | BigQuery (Bronze) | Central raw data lake |
+| **Transformation Layer** | Cloud Composer (SQL DAGs) | Cleansing, validation & enrichment |
+| **ML Layer** | BigQuery ML | Model training & predictions |
+| **Alert Layer** | Pub/Sub → Cloud Function → SendGrid | Real-time alerts via email |
+| **Visualization Layer** | Looker | Dashboard insights via materialized views |
+
+By decoupling these layers, the system now supports **low-latency alerts**, **high-quality analytics**, and **scalable model retraining**, achieving a truly **real-time AI-powered health monitoring system**.
+
+---
+
+
 ## 🧠 Architecture Story (Step-by-Step Flow)
 
 ### 1. Data Simulation & Ingestion
